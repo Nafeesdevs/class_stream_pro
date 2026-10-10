@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    font-family: 'Plus Jakarta Sans', 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    scroll-behavior: smooth;
+    color: #11142D;
+    background-color: #FFFFFF;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { cursor: pointer; }
+}
+
+.font-display { font-family: 'Plus Jakarta Sans', sans-serif; }
+.font-body { font-family: 'DM Sans', 'Plus Jakarta Sans', sans-serif; }
+
+/* Shadows copied from the SmartList theme */
+.shadow-smart-card { box-shadow: 0 20px 50px -12px rgba(17, 20, 45, 0.08), 0 4px 16px -4px rgba(17, 20, 45, 0.04); }
+.shadow-smart-float { box-shadow: 0 28px 60px -15px rgba(17, 20, 45, 0.13), 0 8px 24px -6px rgba(17, 20, 45, 0.06); }
+.shadow-smart-phone { box-shadow: 0 32px 70px -16px rgba(96, 114, 174, 0.25), inset 0 2px 4px rgba(255, 255, 255, 0.6); }
+.shadow-smart-purple-phone { box-shadow: 0 32px 70px -16px rgba(108, 92, 231, 0.35), inset 0 2px 6px rgba(255, 255, 255, 0.45); }
+
+/* Thin scrollbars */
+* { scrollbar-width: thin; scrollbar-color: #D5D8E2 transparent; }
+
+/* Printable receipt */
+@media print {
+  body * { visibility: hidden !important; }
+  #receipt-print, #receipt-print * { visibility: visible !important; }
+  #receipt-print { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none !important; border: none !important; }
+  .no-print { display: none !important; }
+}
