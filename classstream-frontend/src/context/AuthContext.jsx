@@ -9,6 +9,11 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
+    // If no token exists, the user is a guest; don't make an unauthenticated /me call
+    if (!getToken()) {
+      setUser(null);
+      return null;
+    }
     try {
       const { user } = await api.me();
       setUser(user);
@@ -21,7 +26,6 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    // The backend also sets an httpOnly cookie, so always try /me once.
     refresh().finally(() => setLoading(false));
   }, [refresh]);
 

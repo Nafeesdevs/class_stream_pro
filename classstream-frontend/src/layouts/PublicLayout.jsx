@@ -37,10 +37,11 @@ export default function PublicLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#11142D] overflow-x-hidden selection:bg-[#6C5CE7]/15 selection:text-[#6C5CE7] flex flex-col">
-      <header className="relative z-40 max-w-[1240px] w-full mx-auto px-6 sm:px-10 pt-7 pb-6 flex items-center justify-between">
-        <div className="flex items-center gap-12 lg:gap-14">
-          <BrandLogo />
+    <div className="min-h-screen bg-white text-[#11142D] overflow-x-clip selection:bg-[#6C5CE7]/15 selection:text-[#6C5CE7] flex flex-col">
+      <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-gray-100/80 transition-all">
+        <div className="max-w-[1240px] w-full mx-auto px-6 sm:px-10 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-12 lg:gap-14">
+            <BrandLogo />
           <nav className="hidden lg:flex items-center gap-8">
             {links.map(([l, to]) => (
               <NavLink key={to} to={to} end={to === '/'} className={linkCls}>
@@ -110,6 +111,7 @@ export default function PublicLayout() {
           <button className="lg:hidden w-10 h-10 rounded-full bg-[#F4F5F8] flex items-center justify-center" onClick={() => setOpen(true)} aria-label="Open menu">
             <Menu size={18} />
           </button>
+        </div>
         </div>
       </header>
 
