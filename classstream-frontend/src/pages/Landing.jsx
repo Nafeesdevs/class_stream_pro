@@ -116,7 +116,7 @@ export default function Landing() {
                   <motion.path d="M101 16 L107 25 L97 27" stroke="#11142D" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, delay: 1.3 }} />
                 </svg>
 
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }} className="absolute top-0 left-[190px] sm:left-[225px] w-[195px] z-20 hover:-translate-y-1 transition-transform duration-300">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }} className="absolute top-0 left-[140px] xs:left-[165px] sm:left-[225px] w-[190px] sm:w-[195px] z-20 hover:-translate-y-1 transition-transform duration-300">
                   <MiniCard bars={['#FF6B4A', '#F59E0B']} title="Web Development" meta={<><span className="w-3.5 h-3.5 rounded bg-[#EDE9FE] text-[#7B61FF] flex items-center justify-center text-[8px]">▶</span><span>12 videos · 6h 20m</span></>} text="Build modern websites from scratch with step-by-step video lessons." tag="Assigned" tagCls="bg-[#E6F9F0] text-[#10B981]" />
                 </motion.div>
                 <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.25 }} className="hidden sm:block absolute top-[38px] right-0 w-[205px] z-20 hover:-translate-y-1 transition-transform duration-300">
