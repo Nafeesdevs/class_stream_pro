@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { ArrowRight, Film, Lock, Play } from 'lucide-react';
 import { DotGrid, Rocket3D, Checkmark3D, ShoppingBag3D, Envelope3D, TestimonialAvatar } from '../components/Visuals.tsx';
 import { SectionBadge, Button } from '../components/ui.jsx';
-import { PlanCard, LessonCard, accentFor } from '../components/Cards.jsx';
+import { PlanCard, LessonCard, PlansSlider, accentFor } from '../components/Cards.jsx';
 import { api } from '../lib/api.js';
 
 /* ---- small class-themed cards in the SmartList card style (hero collage) ---- */
@@ -335,11 +335,11 @@ export default function Landing() {
               <h2 className="font-display text-[34px] sm:text-[42px] font-extrabold leading-[1.16] tracking-[-0.025em] mb-4">Simple plans, instant access</h2>
               <p className="text-[15px] text-[#808191] leading-[1.65]">Choose how many classes you want and for how long. Pay securely with Razorpay.</p>
             </motion.div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-7 pt-4">
-              {plans.slice(0, 3).map((p, i) => (
-                <PlanCard key={p._id} plan={p} index={i} label="Choose plan" onSelect={() => nav('/subscription')} />
-              ))}
-            </div>
+            <PlansSlider
+              plans={plans}
+              label="Choose plan"
+              onSelect={() => nav('/subscription')}
+            />
           </div>
         </section>
       )}

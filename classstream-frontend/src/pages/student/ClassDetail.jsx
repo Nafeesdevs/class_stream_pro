@@ -69,6 +69,15 @@ export default function ClassDetail() {
   const embed = playing && toEmbed(playing.url);
   const total = lesson.videos.length;
 
+  const handleEnded = () => {
+    if (!playing || !lesson?.videos?.length) return;
+    const currentIdx = lesson.videos.findIndex((v) => v._id === playing._id);
+    if (currentIdx !== -1 && currentIdx < lesson.videos.length - 1) {
+      const nextVideo = lesson.videos[currentIdx + 1];
+      play(nextVideo);
+    }
+  };
+
   return (
     <div className="relative">
       <div className="hidden sm:block absolute top-0 left-0"><DotGrid rows={6} cols={4} color="#6FD4F2" gap={12} /></div>
@@ -100,7 +109,16 @@ export default function ClassDetail() {
                     {embed ? (
                       <iframe src={embed} title={playing.title} className="w-full h-full" allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen />
                     ) : (
-                      <video key={playing.url} src={mediaUrl(playing.url)} controls autoPlay controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} className="w-full h-full bg-black" />
+                      <video
+                        key={playing.url}
+                        src={mediaUrl(playing.url)}
+                        controls
+                        autoPlay
+                        controlsList="nodownload"
+                        onContextMenu={(e) => e.preventDefault()}
+                        onEnded={handleEnded}
+                        className="w-full h-full bg-black"
+                      />
                     )}
                   </motion.div>
                 ) : (

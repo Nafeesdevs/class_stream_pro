@@ -15,7 +15,7 @@ export default function StudentHome() {
   if (loading) return <PageLoader />;
   if (error) return <div className="max-w-[1240px] mx-auto px-6 py-10"><ErrorBox message={error} onRetry={refetch} /></div>;
 
-  const { lessons, subscription } = data;
+  const { lessons = [], subscription } = data || {};
   const assigned = lessons.filter((l) => l.isUnlocked);
   const explore = lessons.filter((l) => !l.isUnlocked);
   const hour = new Date().getHours();

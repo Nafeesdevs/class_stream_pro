@@ -1,6 +1,7 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Check, Lock, PlayCircle, Unlock, Crown, Clock3, Film } from 'lucide-react';
+import { Check, Lock, PlayCircle, Unlock, Crown, Clock3, Film, ChevronLeft, ChevronRight } from 'lucide-react';
 import { money, durationLabel } from '../lib/format.js';
 import { Button, Pill } from './ui.jsx';
 import { Rocket3D, Checkmark3D, ShoppingBag3D } from './Visuals.tsx';
@@ -133,3 +134,125 @@ export function PlanCard({ plan, index = 0, onSelect, loading, current, label = 
     </motion.div>
   );
 }
+
+const SLIDER_GAP = 28;
+
+/* ----------------------- PLANS SLIDER ----------------------- */
+export function PlansSlider({ plans = [], onSelect, disabled, label = 'Choose plan' }) {
+  const trackRef = useRef(null);
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(false);
+  const [page, setPage] = useState(0);
+  const [pages, setPages] = useState(1);
+
+  const getStep = () => {
+    const el = trackRef.current;
+    const first = el?.firstElementChild;
+    return first ? first.offsetWidth + SLIDER_GAP : 0;
+  };
+
+  const update = useCallback(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const step = getStep() || 1;
+    const max = el.scrollWidth - el.clientWidth;
+    setCanPrev(el.scrollLeft > 4);
+    setCanNext(el.scrollLeft < max - 4);
+    setPages(Math.max(1, Math.round(max / step) + 1));
+    setPage(Math.min(Math.round(el.scrollLeft / step), Math.max(0, Math.round(max / step))));
+  }, []);
+
+  useEffect(() => {
+    update();
+    const el = trackRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      el.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [update, plans.length]);
+
+  const slide = (dir) => trackRef.current?.scrollBy({ left: dir * getStep(), behavior: 'smooth' });
+  const goTo = (i) => trackRef.current?.scrollTo({ left: i * getStep(), behavior: 'smooth' });
+
+  const arrowCls = (enabled) =>
+    `w-11 h-11 rounded-full flex items-center justify-center border transition-colors ${
+      enabled
+        ? 'bg-[#11142D] text-white border-[#11142D] hover:bg-[#6C5CE7] hover:border-[#6C5CE7] shadow-smart-card'
+        : 'bg-white text-[#C4C6D3] border-gray-200 cursor-not-allowed'
+    }`;
+
+  return (
+    <div>
+      {/* Header with arrows */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-[13px] font-bold text-[#808191]">
+          {plans.length} plans available · swipe or use the arrows
+        </div>
+        <div className="flex items-center gap-3">
+          <motion.button
+            type="button"
+            aria-label="Previous plans"
+            disabled={!canPrev}
+            onClick={() => slide(-1)}
+            whileHover={canPrev ? { scale: 1.1 } : undefined}
+            whileTap={canPrev ? { scale: 0.92 } : undefined}
+            className={arrowCls(canPrev)}
+          >
+            <ChevronLeft size={20} />
+          </motion.button>
+          <motion.button
+            type="button"
+            aria-label="Next plans"
+            disabled={!canNext}
+            onClick={() => slide(1)}
+            whileHover={canNext ? { scale: 1.1 } : undefined}
+            whileTap={canNext ? { scale: 0.92 } : undefined}
+            className={arrowCls(canNext)}
+          >
+            <ChevronRight size={20} />
+          </motion.button>
+        </div>
+      </div>
+
+      {/* Track */}
+      <div
+        ref={trackRef}
+        className="flex gap-7 overflow-x-auto snap-x snap-mandatory scroll-smooth pt-8 pb-10 px-3 -mx-3 scroll-pl-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {plans.map((p, i) => (
+          <motion.div
+            key={p._id || i}
+            initial={{ opacity: 0, y: 40, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: i * 0.1, duration: 0.5, ease: 'easeOut' }}
+            whileHover={{ y: -8 }}
+            className="snap-start shrink-0 w-[85%] sm:w-[calc((100%-28px)/2)] lg:w-[calc((100%-56px)/3)]"
+          >
+            <PlanCard plan={p} index={i} onSelect={onSelect} disabled={disabled} label={label} />
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Dots */}
+      {pages > 1 && (
+        <div className="flex items-center justify-center gap-2 -mt-3">
+          {Array.from({ length: pages }).map((_, i) => (
+            <motion.button
+              key={i}
+              type="button"
+              aria-label={`Go to slide ${i + 1}`}
+              onClick={() => goTo(i)}
+              animate={{ width: page === i ? 26 : 8, backgroundColor: page === i ? '#6C5CE7' : '#D9DBE6' }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              className="h-2 rounded-full"
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+

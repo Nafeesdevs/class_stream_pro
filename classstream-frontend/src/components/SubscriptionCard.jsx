@@ -21,7 +21,12 @@ export default function SubscriptionCard({ sub, cta = true }) {
       </div>
     );
   }
-  const pct = Math.min(100, Math.round((sub.classesUsed / sub.classesAllowed) * 100));
+  const totalClasses = sub.classesAllowed || sub.plan?.classLimit || sub.planSnapshot?.classLimit || 0;
+  const usedClasses = sub.classesUsed || 0;
+  const leftClasses = sub.classesLeft !== undefined ? sub.classesLeft : Math.max(0, totalClasses - usedClasses);
+  const pct = totalClasses > 0 ? Math.min(100, Math.round((usedClasses / totalClasses) * 100)) : 0;
+  const planName = sub.planName || sub.plan?.name || sub.planSnapshot?.name || 'Active plan';
+  const state = sub.state || sub.status || 'active';
   return (
     <div className="relative bg-[#11142D] text-white rounded-[28px] p-7 overflow-hidden">
       <div className="absolute -right-12 -top-12 w-44 h-44 rounded-full bg-[#6852ED]/25" />
@@ -30,15 +35,15 @@ export default function SubscriptionCard({ sub, cta = true }) {
         <div className="flex items-start justify-between gap-3 mb-6">
           <div>
             <div className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-white/50 mb-1.5">Current plan</div>
-            <h3 className="font-display text-[26px] font-extrabold tracking-tight">{sub.planName}</h3>
+            <h3 className="font-display text-[26px] font-extrabold tracking-tight">{planName}</h3>
           </div>
-          <Pill tone={statusTone(sub.state)}>{sub.state}</Pill>
+          <Pill tone={statusTone(state)}>{state}</Pill>
         </div>
 
         <div className="flex items-end justify-between mb-2.5">
           <div>
-            <span className="font-display text-[36px] font-extrabold tracking-tight leading-none">{sub.classesLeft}</span>
-            <span className="text-[13px] text-white/60 font-semibold ml-2">of {sub.classesAllowed} classes left</span>
+            <span className="font-display text-[36px] font-extrabold tracking-tight leading-none">{leftClasses}</span>
+            <span className="text-[13px] text-white/60 font-semibold ml-2">of {totalClasses} classes left</span>
           </div>
           <span className="text-[12px] font-bold text-white/70">{pct}% used</span>
         </div>

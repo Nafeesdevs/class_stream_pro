@@ -54,6 +54,31 @@ export const updatePlan = async (req, res, next) => {
       runValidators: true,
     });
     if (!plan) return next(new HandleError("Plan not found", 404));
+
+    // Keep active and upcoming subscriptions synchronized with plan changes
+    const subUpdates = {};
+    if (plan.classLimit !== undefined) {
+      subUpdates.classesAllowed = plan.classLimit;
+      subUpdates["planSnapshot.classLimit"] = plan.classLimit;
+    }
+    if (plan.name) {
+      subUpdates.planName = plan.name;
+      subUpdates["planSnapshot.name"] = plan.name;
+    }
+    if (plan.durationMonths !== undefined) {
+      subUpdates["planSnapshot.durationMonths"] = plan.durationMonths;
+    }
+
+    if (Object.keys(subUpdates).length > 0) {
+      await Subscription.updateMany(
+        {
+          $or: [{ plan: plan._id }, { "planSnapshot.name": plan.name }],
+          state: { $in: ["active", "upcoming"] },
+        },
+        { $set: subUpdates }
+      );
+    }
+
     res.status(200).json({ success: true, plan });
   } catch (error) {
     next(error);

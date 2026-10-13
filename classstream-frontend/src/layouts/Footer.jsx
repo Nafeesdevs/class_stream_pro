@@ -86,7 +86,7 @@ export default function Footer({ showCta = true }) {
             </form>
           </div>
 
-          <div className="lg:col-span-6 grid grid-cols-2 sm:grid-cols-3 gap-8 sm:gap-10 lg:justify-items-end">
+          <div className="lg:col-span-6 flex justify-start lg:justify-end gap-16 sm:gap-24">
             {col('PRODUCT', [
               ['Classes', '/classes'],
               ['Subscription', '/subscription'],
@@ -97,16 +97,26 @@ export default function Footer({ showCta = true }) {
               ['Contact', '/contact'],
               ['Profile', '/profile'],
             ])}
-            {col('LEGAL', [
-              ['Terms of Service', '/terms'],
-              ['Privacy Policy', '/privacy'],
-            ])}
           </div>
         </div>
 
-        <div className="mt-16 pt-6 border-t border-white/10 text-[12px] text-[#6E7191] flex flex-col sm:flex-row justify-between gap-2">
-          <span>© {new Date().getFullYear()} ClassStream. All rights reserved.</span>
-          <span>Made for learners everywhere.</span>
+        <div className="mt-16 pt-6 border-t border-white/10 text-[13px] flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
+          <span className="text-[#9CA3AF]">© {new Date().getFullYear()} ClassStream. All rights reserved.</span>
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-4 gap-y-2">
+            <div className="flex items-center gap-3.5 whitespace-nowrap">
+              <Link to="/terms" className="text-[#D1D5DB] hover:text-white transition-colors">
+                Terms of Service
+              </Link>
+              <span className="text-white/20 select-none">·</span>
+              <Link to="/privacy" className="text-[#D1D5DB] hover:text-white transition-colors">
+                Privacy Policy
+              </Link>
+            </div>
+            <div className="flex items-center gap-3.5 whitespace-nowrap">
+              <span className="text-white/20 select-none hidden sm:inline">·</span>
+              <span className="text-[#9CA3AF]">Developed by SDL CREATIVE GROUPS PRIVATE LIMITED</span>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
