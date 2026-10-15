@@ -1246,41 +1246,33 @@ function useIsMobile(breakpoint = 640) {
 /* ---- Counter animation: counts up when scrolled into view, supports decimals (98.6) ---- */
 const easeOutExpo = (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
 
-function CountUp({ value, suffix = '', duration = 2000, delay = 0 }) {
+function CountUp({ value, suffix = '', duration = 1400, delay = 0 }) {
   const ref = useRef(null);
   const target = Number(value) || 0;
   const decimals = (String(value).split('.')[1] || '').length;
   const [n, setN] = useState(0);
-  const hasAnimated = useRef(false);
-  const from = useRef(0);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
-    const startAnimation = () => {
-      if (hasAnimated.current) {
-        setN(target);
-        return;
-      }
-      hasAnimated.current = true;
+    let raf;
+    let timer;
 
+    const startAnimation = () => {
       const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
       if (reduce) {
-        from.current = target;
         setN(target);
         return;
       }
 
-      let raf;
+      setN(0);
       let start = null;
-      const begin = from.current;
-      const timer = setTimeout(() => {
+      timer = setTimeout(() => {
         const step = (ts) => {
           if (start === null) start = ts;
           const p = Math.min((ts - start) / duration, 1);
-          const v = begin + (target - begin) * easeOutExpo(p);
-          from.current = v;
+          const v = target * easeOutExpo(p);
           setN(v);
           if (p < 1) {
             raf = requestAnimationFrame(step);
@@ -1290,11 +1282,12 @@ function CountUp({ value, suffix = '', duration = 2000, delay = 0 }) {
         };
         raf = requestAnimationFrame(step);
       }, delay);
+    };
 
-      return () => {
-        clearTimeout(timer);
-        if (raf) cancelAnimationFrame(raf);
-      };
+    const resetAnimation = () => {
+      clearTimeout(timer);
+      if (raf) cancelAnimationFrame(raf);
+      setN(0);
     };
 
     if (typeof IntersectionObserver === 'undefined') {
@@ -1307,15 +1300,18 @@ function CountUp({ value, suffix = '', duration = 2000, delay = 0 }) {
         const entry = entries[0];
         if (entry.isIntersecting) {
           startAnimation();
-          observer.disconnect();
+        } else {
+          resetAnimation();
         }
       },
-      { threshold: 0.05, rootMargin: '0px 0px -20px 0px' }
+      { threshold: 0.1, rootMargin: '0px 0px -20px 0px' }
     );
 
     observer.observe(el);
 
     return () => {
+      clearTimeout(timer);
+      if (raf) cancelAnimationFrame(raf);
       observer.disconnect();
     };
   }, [target, duration, delay]);
@@ -1328,9 +1324,19 @@ function CountUp({ value, suffix = '', duration = 2000, delay = 0 }) {
   );
 }
 
-/* ---- Gentle idle float + tap feedback (works on touch, where hover doesn't exist) ---- */
-const Float = ({ children, amp = 8, duration = 4, delay = 0, className = '' }) => (
-  <motion.div animate={{ y: [0, -amp, 0] }} transition={{ duration, delay, repeat: Infinity, ease: 'easeInOut' }} whileTap={{ scale: 0.97 }} className={className}>
+/* ---- Butter-smooth floating animation powered by hardware-accelerated transforms ---- */
+const Float = ({ children, amp = 6, duration = 3.6, delay = 0, className = '' }) => (
+  <motion.div
+    animate={{ y: [-amp, amp, -amp] }}
+    transition={{
+      duration,
+      delay,
+      repeat: Infinity,
+      ease: [0.45, 0.05, 0.55, 0.95],
+    }}
+    style={{ willChange: 'transform', transform: 'translateZ(0)' }}
+    className={className}
+  >
     {children}
   </motion.div>
 );
@@ -1458,25 +1464,47 @@ export default function Landing() {
                   <motion.path d="M101 16 L107 25 L97 27" stroke="#11142D" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, delay: 1.3 }} />
                 </svg>
 
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }} className="absolute top-0 left-[140px] xs:left-[165px] sm:left-[225px] w-[190px] sm:w-[195px] z-20">
-                  <Float amp={7} duration={4.2}>
+                <motion.div
+                  initial={{ opacity: 0, y: 16, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.45, delay: 0.08, ease: 'easeOut' }}
+                  className="absolute top-0 left-[140px] xs:left-[165px] sm:left-[225px] w-[190px] sm:w-[195px] z-20"
+                >
+                  <Float amp={5} duration={3.4}>
                     <MiniCard bars={['#FF6B4A', '#F59E0B']} title="Web Development" meta={<><span className="w-3.5 h-3.5 rounded bg-[#EDE9FE] text-[#7B61FF] flex items-center justify-center text-[8px]">▶</span><span>12 videos · 6h 20m</span></>} text="Build modern websites from scratch with step-by-step video lessons." tag="Assigned" tagCls="bg-[#E6F9F0] text-[#10B981]" />
                   </Float>
                 </motion.div>
-                <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.25 }} className="hidden sm:block absolute top-[38px] right-0 w-[205px] z-20">
-                  <Float amp={9} duration={4.8} delay={0.6}>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 18, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.45, delay: 0.16, ease: 'easeOut' }}
+                  className="hidden sm:block absolute top-[38px] right-0 w-[205px] z-20"
+                >
+                  <Float amp={6} duration={3.8} delay={0.4}>
                     <MiniCard title="Design Systems" meta={<><span className="w-3.5 h-3.5 rounded bg-[#EDE9FE] text-[#7B61FF] flex items-center justify-center text-[8px]">✓</span><span>8 videos</span></>} text="Learn how to create consistent, scalable interfaces teams love." tag="Free preview" tagCls="bg-[#E6F4FF] text-[#3B82F6]" />
                   </Float>
                 </motion.div>
-                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="absolute top-[168px] left-0 sm:left-[22px] w-[165px] z-10">
-                  <Float amp={6} duration={5} delay={1.1}>
+
+                <motion.div
+                  initial={{ opacity: 0, x: -16, scale: 0.95 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  transition={{ duration: 0.45, delay: 0.12, ease: 'easeOut' }}
+                  className="absolute top-[168px] left-0 sm:left-[22px] w-[165px] z-10"
+                >
+                  <Float amp={5} duration={4.2} delay={0.8}>
                     <MiniCard bars={['#FF6B4A', '#F59E0B']} title="Data & AI" meta={<span>10 videos</span>} text="From spreadsheets to machine learning basics..." />
                   </Float>
                 </motion.div>
 
                 {/* Your Pro plan box: lowered on mobile (-bottom-[44px]), unchanged from sm and up */}
-                <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }} className="absolute -bottom-[44px] sm:bottom-[8px] left-[10px] sm:left-[38px] w-[330px] sm:w-[365px] z-30">
-                  <Float amp={5} duration={5.4} delay={0.3}>
+                <motion.div
+                  initial={{ opacity: 0, y: 22, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.22, ease: 'easeOut' }}
+                  className="absolute -bottom-[44px] sm:bottom-[8px] left-[10px] sm:left-[38px] w-[330px] sm:w-[365px] z-30"
+                >
+                  <Float amp={4} duration={4.0} delay={0.2}>
                     <div className="bg-white rounded-[22px] shadow-smart-float border border-gray-100/80 p-5 select-none">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex gap-1.5">
@@ -1487,21 +1515,26 @@ export default function Landing() {
                       </div>
                       <div className="text-[15px] font-extrabold mb-3">Your Pro plan</div>
                       <div className="h-2 rounded-full bg-[#EEF0F6] overflow-hidden mb-4">
-                        <motion.div initial={{ width: 0 }} animate={{ width: '60%' }} transition={{ duration: 1.2, delay: 0.8 }} className="h-full rounded-full bg-gradient-to-r from-[#7B61FF] to-[#63D2FF]" />
+                        <motion.div initial={{ width: 0 }} animate={{ width: '60%' }} transition={{ duration: 0.9, delay: 0.4, ease: 'easeOut' }} className="h-full rounded-full bg-gradient-to-r from-[#7B61FF] to-[#63D2FF]" />
                       </div>
                       {['Intro to Web Development', 'Design Systems'].map((t, i) => (
-                        <motion.div key={t} initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 1 + i * 0.15 }} className="flex items-center gap-3 py-2.5 border-t border-gray-100">
+                        <div key={t} className="flex items-center gap-3 py-2.5 border-t border-gray-100">
                           <span className={`w-[18px] h-[18px] rounded-full flex items-center justify-center text-[9px] ${i === 0 ? 'bg-[#14172B] text-white' : 'border-2 border-[#9186F7]'}`}>{i === 0 && '✓'}</span>
                           <span className="text-[12px] font-semibold flex-1">{t}</span>
                           <Play size={13} className="text-[#6C5CE7]" />
-                        </motion.div>
+                        </div>
                       ))}
                     </div>
                   </Float>
                 </motion.div>
 
-                <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }} className="hidden sm:block absolute bottom-[28px] right-0 w-[205px] z-20">
-                  <Float amp={8} duration={4.5} delay={0.9}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.45, delay: 0.28, ease: 'easeOut' }}
+                  className="hidden sm:block absolute bottom-[28px] right-0 w-[205px] z-20"
+                >
+                  <Float amp={6} duration={3.6} delay={0.6}>
                     <MiniCard accent="#7B61FF" bars={['#F59E0B', '#10B981']} title="Receipt ready" meta={<><span className="font-semibold text-[#11142D]">₹999</span><span className="text-gray-300">|</span><span>Razorpay</span></>} text="Payment successful. Your subscription is active and classes are unlocked." tag="PAID" tagCls="bg-[#E6F9F0] text-[#10B981]" />
                   </Float>
                 </motion.div>
@@ -1609,12 +1642,12 @@ export default function Landing() {
             </h3>
             <div className="flex-1 max-w-[740px] grid grid-cols-2 sm:grid-cols-4 gap-6">
               {statsList.map((s, i) => (
-                <motion.div key={i} initial={{ opacity: 0, y: 24, scale: 0.9 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ once: true, amount: 0.2 }} transition={{ type: 'spring', stiffness: 140, damping: 16, delay: 0.1 + i * 0.12 }} whileTap={{ scale: 0.96 }}>
+                <motion.div key={i} initial={{ opacity: 0, y: 24, scale: 0.9 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ once: false, amount: 0.2 }} transition={{ type: 'spring', stiffness: 140, damping: 16, delay: 0.1 + i * 0.12 }} whileTap={{ scale: 0.96 }}>
                   <div className="font-display text-[26px] font-extrabold tracking-tight text-[#4F5265]">
                     <CountUp value={s.value} suffix={s.suffix} delay={i * 150} />
                   </div>
                   <div className="text-[12px] text-[#808191] font-semibold leading-snug">{s.label}</div>
-                  <motion.div initial={{ width: 0 }} whileInView={{ width: 24 + i * 6 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.9, delay: 0.5 + i * 0.12, ease: [0.16, 1, 0.3, 1] }} className="h-1 rounded-full mt-2.5" style={{ background: STAT_ACCENTS[i % 4] }} />
+                  <motion.div initial={{ width: 0 }} whileInView={{ width: 24 + i * 6 }} viewport={{ once: false, amount: 0.2 }} transition={{ duration: 0.9, delay: 0.5 + i * 0.12, ease: [0.16, 1, 0.3, 1] }} className="h-1 rounded-full mt-2.5" style={{ background: STAT_ACCENTS[i % 4] }} />
                 </motion.div>
               ))}
             </div>

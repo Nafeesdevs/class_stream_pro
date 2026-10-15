@@ -331,41 +331,33 @@ const fadeUp = (i = 0) => ({
 /* ---------- Counter: counts up when scrolled into view (supports decimals like 98.6) ---------- */
 const easeOutExpo = (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
 
-function CountUp({ value, suffix = '', duration = 1500, delay = 0 }) {
+function CountUp({ value, suffix = '', duration = 1400, delay = 0 }) {
   const ref = useRef(null);
   const target = Number(value) || 0;
   const decimals = (String(value).split('.')[1] || '').length;
   const [n, setN] = useState(0);
-  const hasAnimated = useRef(false);
-  const fromRef = useRef(0);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
-    const startAnimation = () => {
-      if (hasAnimated.current) {
-        // If data changes after first animation (e.g. from fallback to API), update directly
-        setN(target);
-        return;
-      }
-      hasAnimated.current = true;
+    let raf;
+    let timer;
 
+    const startAnimation = () => {
       const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
       if (reduce) {
         setN(target);
         return;
       }
 
-      let raf;
+      setN(0);
       let start = null;
-      const begin = fromRef.current;
-      const timer = setTimeout(() => {
+      timer = setTimeout(() => {
         const step = (ts) => {
           if (start === null) start = ts;
           const p = Math.min((ts - start) / duration, 1);
-          const currentVal = begin + (target - begin) * easeOutExpo(p);
-          fromRef.current = currentVal;
+          const currentVal = target * easeOutExpo(p);
           setN(currentVal);
           if (p < 1) {
             raf = requestAnimationFrame(step);
@@ -375,11 +367,12 @@ function CountUp({ value, suffix = '', duration = 1500, delay = 0 }) {
         };
         raf = requestAnimationFrame(step);
       }, delay);
+    };
 
-      return () => {
-        clearTimeout(timer);
-        if (raf) cancelAnimationFrame(raf);
-      };
+    const resetAnimation = () => {
+      clearTimeout(timer);
+      if (raf) cancelAnimationFrame(raf);
+      setN(0);
     };
 
     if (typeof IntersectionObserver === 'undefined') {
@@ -392,15 +385,18 @@ function CountUp({ value, suffix = '', duration = 1500, delay = 0 }) {
         const entry = entries[0];
         if (entry.isIntersecting) {
           startAnimation();
-          observer.disconnect();
+        } else {
+          resetAnimation();
         }
       },
-      { threshold: 0.05, rootMargin: '0px 0px -20px 0px' }
+      { threshold: 0.1, rootMargin: '0px 0px -20px 0px' }
     );
 
     observer.observe(el);
 
     return () => {
+      clearTimeout(timer);
+      if (raf) cancelAnimationFrame(raf);
       observer.disconnect();
     };
   }, [target, duration, delay]);
@@ -478,7 +474,7 @@ export function About() {
                     key={i}
                     initial={{ opacity: 0, y: 24, scale: 0.9 }}
                     whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                    viewport={{ once: true, amount: 0.1 }}
+                    viewport={{ once: false, amount: 0.1 }}
                     transition={{ type: 'spring', stiffness: 140, damping: 16, delay: 0.08 + i * 0.08 }}
                     whileHover={{ y: -6, scale: 1.03 }}
                     whileTap={{ scale: 0.98 }}
@@ -494,7 +490,7 @@ export function About() {
                     <motion.div
                       initial={{ width: 0 }}
                       whileInView={{ width: 24 + i * 6 }}
-                      viewport={{ once: true, amount: 0.1 }}
+                      viewport={{ once: false, amount: 0.1 }}
                       transition={{ duration: 0.9, delay: 0.3 + i * 0.08, ease: [0.16, 1, 0.3, 1] }}
                       className="h-1 rounded-full mt-3"
                       style={{ background: STAT_ACCENTS[i % 4] }}
